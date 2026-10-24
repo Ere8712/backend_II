@@ -123,6 +123,52 @@ namespace backend_II.Controllers
             }
         }
 
+        //GET: api/products/search/name?name=Laptop
+        //Agregado un nuevo endpoint para buscar productos por nombre, utilizando un parámetro de consulta (query parameter).
+        [HttpGet("search/name")]
+        public async Task<GeneralResponse<List<Product>>> GetByName([FromQuery] string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return new GeneralResponse<List<Product>>
+                {
+                    Success = false,
+                    Message = "El parámetro 'name' en la URL es obligatorio.",
+                    Data = null
+                };
+            }
+
+            try
+            {
+                var products = await _repository.GetProductByNameAsync(name);
+
+                if (products.Count == 0)
+                {
+                    return new GeneralResponse<List<Product>>
+                    {
+                        Success = false,
+                        Message = "No se encontraron productos con el nombre proporcionado.",
+                        Data = products 
+                    };
+                }
+                return new GeneralResponse<List<Product>>
+                {
+                    Success = true,
+                    Message = "Productos encontrados.",
+                    Data = products
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GeneralResponse<List<Product>>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Data = null
+                };
+            }
+        }
+
         // POST: api/products/search
         [HttpPost("search")]
         public async Task<GeneralResponse<Product>> GetByBody([FromBody] ProductSearchRequest request)

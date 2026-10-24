@@ -7,6 +7,7 @@ ALTER PROCEDURE [dbo].[sp_GetAllActiveProducts]
     @method VARCHAR(100), 
     @isActive BIT = NULL,
     @SKU VARCHAR(50) = NULL,
+    @Name VARCHAR(100) = NULL,  -- Agregado parámetro Name
     @KeyValue UNIQUEIDENTIFIER = NULL,
     @UserId INT = NULL,
     @ProductId INT = NULL,
@@ -50,6 +51,31 @@ BEGIN
                '1' AS 'code', 'Success' AS 'message'
         FROM Products
         WHERE SKU = @SKU AND IsActive = 1
+        ORDER BY Name ASC;
+    END
+
+
+    -- Agregado método para obtener productos por nombre
+    If @method = 'GetProductByName'
+    BEGIN
+        IF @Name IS NULL OR LTRIM(RTRIM(@Name)) = ''
+        BEGIN
+            SELECT '0' AS 'code', 'No se ha especificado el parámetro Name' AS 'message'
+            RETURN
+        END
+
+        SELECT 
+            ProductId,
+            SKU,
+            Name,
+            Description,
+            Price,
+            StockQuantity,
+            '1' AS 'code',
+            'Success' AS 'message'
+        FROM Products
+        WHERE Name LIKE '%' + @Name + '%' 
+        AND IsActive = 1
         ORDER BY Name ASC;
     END
 

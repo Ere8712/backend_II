@@ -95,5 +95,50 @@ namespace backend_II.Database
 
             return null;
         }
+
+        // Nuevo método para obtener productos por nombre
+        //agregamos <list> porque puede devolver varios productos con el mismo nombre
+        public async Task<List<Product>> GetProductByNameAsync(string name) 
+        {
+            var products = new List<Product>();
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                using (var command = new SqlCommand("sp_GetAllActiveProducts", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    command.Parameters.AddWithValue("@method", "GetProductByName");
+                    command.Parameters.AddWithValue("@Name", name);
+
+                    await connection.OpenAsync();
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            if (reader.GetName(0) == "code") 
+                            {
+                                continue; // Salta al siguiente registro si hay un error
+                            }
+
+                            products.Add(new Product
+                            {
+                                ProductId = Convert.ToInt32(reader["ProductId"]),
+                                SKU = reader["SKU"].ToString() ?? string.Empty,
+                                Name = reader["Name"].ToString() ?? string.Empty,
+                                Description = reader["Description"] != DBNull.Value
+                                                ? reader["Description"].ToString() ?? string.Empty 
+                                                : string.Empty,
+                                Price = Convert.ToDecimal(reader["Price"]),
+                                StockQuantity = Convert.ToInt32(reader["StockQuantity"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            return products;
+        }
     }
 }

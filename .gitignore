@@ -2,3 +2,5 @@ obj/
 bin/
 .vs/
 .env
+.DS_Store
+**/.DS_Store
